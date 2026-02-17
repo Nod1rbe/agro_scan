@@ -6,8 +6,8 @@ part 'home_state.dart';
 class HomeCubit extends Cubit<HomeState> {
   HomeCubit() : super(HomeInitial());
 
-  void openCamera() => emit(HomeNavigateToScan(HomeAction.camera));
-  void openGallery() => emit(HomeNavigateToScan(HomeAction.gallery));
+  void openCamera() => emit(HomeOpenCamera());
+  void openGallery() => emit(HomeOpenGallery());
 
   void reset() => emit(HomeInitial());
 }

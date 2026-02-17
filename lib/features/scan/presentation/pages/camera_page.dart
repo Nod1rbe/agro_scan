@@ -1,7 +1,10 @@
 import 'dart:io';
 
+import 'package:agro_scan/features/scan/data/repositories/scan_repository.dart';
+import 'package:agro_scan/features/scan/presentation/cubit/scan_cubit.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -59,11 +62,18 @@ class _CameraPageState extends State<CameraPage> {
       final newPath = p.join(dir.path, 'agroscan_${DateTime.now().millisecondsSinceEpoch}.jpg');
       final saved = await File(file.path).copy(newPath);
       if (!mounted) return;
-      if (!mounted) return;
 
       await _controller?.dispose();
       _controller = null;
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => ProgressPage(imagePath: saved.path)));
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (context) => ScanCubit(ScanRepository()),
+            child: ProgressPage(imagePath: saved.path),
+          ),
+        ),
+      );
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Rasmga olishda xatolik')));
@@ -101,7 +111,6 @@ class _CameraPageState extends State<CameraPage> {
                     ],
                   ),
                 ),
-
                 Positioned(
                   left: 0,
                   right: 0,

@@ -1,32 +1,64 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'dart:io';
 
-class ProgressPage extends StatelessWidget {
+import 'package:agro_scan/features/scan/presentation/cubit/scan_cubit.dart';
+import 'package:agro_scan/features/scan/presentation/pages/result_page.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+class ProgressPage extends StatefulWidget {
   final String imagePath;
   const ProgressPage({super.key, required this.imagePath});
 
   @override
+  State<ProgressPage> createState() => _ProgressPageState();
+}
+
+class _ProgressPageState extends State<ProgressPage> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<ScanCubit>().analyzeImage(widget.imagePath);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: .center,
-          crossAxisAlignment: .center,
-          children: [
-            SvgPicture.asset('assets/icons/logo.svg', height: 70),
-            SizedBox(height: 16),
-            SizedBox(height: 30, width: 30, child: CircularProgressIndicator(color: Color(0xFF00C950))),
-            SizedBox(height: 16),
-            Text('Rasm tahlil qilinmoqda...', style: TextStyle(fontFamily: 'AlfaSlabOne', fontSize: 16)),
-            SizedBox(height: 8),
-            Text(
-              'Sun’iy intellekt o‘simlikni kasalliklar bor-yo‘qligini tekshirmoqda',
-              style: TextStyle(fontFamily: 'Alice'),
-              textAlign: .center,
+    return BlocListener<ScanCubit, ScanState>(
+      listener: (context, state) {
+        if (state is ScanSuccess) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ResultPage(
+                image: File(widget.imagePath),
+                disease: state.disease,
+                solution: state.solution,
+              ),
             ),
-          ],
+          );
+        } else if (state is ScanFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+            ),
+          );
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              const Text('Iltimos, kuting...'),
+            ],
+          ),
         ),
       ),
     );
   }
 }
+
+
+

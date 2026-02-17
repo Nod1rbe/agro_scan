@@ -5,9 +5,6 @@ sealed class HomeState {}
 
 final class HomeInitial extends HomeState {}
 
-final class HomeNavigateToScan extends HomeState {
-  final HomeAction action;
-  HomeNavigateToScan(this.action);
-}
+final class HomeOpenCamera extends HomeState {}
 
-enum HomeAction { camera, gallery }
+final class HomeOpenGallery extends HomeState {}

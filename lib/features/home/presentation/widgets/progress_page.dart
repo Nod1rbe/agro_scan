@@ -31,6 +31,7 @@ class _ProgressPageState extends State<ProgressPage> {
               builder: (_) => ResultPage(
                 image: File(widget.imagePath),
                 disease: state.disease,
+                description: state.description,
                 solution: state.solution,
               ),
             ),

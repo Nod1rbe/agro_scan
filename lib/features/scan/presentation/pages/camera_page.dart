@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:agro_scan/core/ui/top_alert.dart';
 import 'package:agro_scan/features/scan/data/repositories/scan_repository.dart';
 import 'package:agro_scan/features/scan/presentation/cubit/scan_cubit.dart';
 import 'package:camera/camera.dart';
@@ -65,6 +66,7 @@ class _CameraPageState extends State<CameraPage> {
 
       await _controller?.dispose();
       _controller = null;
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -76,7 +78,7 @@ class _CameraPageState extends State<CameraPage> {
       );
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Rasmga olishda xatolik')));
+      showTopAlert(context, message: 'Rasmga olishda xatolik', isError: true);
       setState(() => _taking = false);
     }
   }

@@ -12,24 +12,6 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../scan/presentation/pages/camera_page.dart';
 
-void _cycleAppTheme(BuildContext context) {
-  final scope = ThemeScope.of(context);
-  final next = switch (scope.themeMode) {
-    ThemeMode.system => ThemeMode.light,
-    ThemeMode.light => ThemeMode.dark,
-    ThemeMode.dark => ThemeMode.system,
-  };
-  scope.setThemeMode(next);
-}
-
-IconData _appThemeIcon(ThemeMode mode) {
-  return switch (mode) {
-    ThemeMode.dark => Icons.light_mode_rounded,
-    ThemeMode.light => Icons.dark_mode_rounded,
-    ThemeMode.system => Icons.brightness_auto_rounded,
-  };
-}
-
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -50,8 +32,6 @@ class _HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<_HomeShell> {
-  int _navIndex = 0;
-
   void _cycleTheme(BuildContext context) {
     final scope = ThemeScope.of(context);
     final next = switch (scope.themeMode) {
@@ -67,14 +47,6 @@ class _HomeShellState extends State<_HomeShell> {
       ThemeMode.dark => Icons.light_mode_rounded,
       ThemeMode.light => Icons.dark_mode_rounded,
       ThemeMode.system => Icons.brightness_auto_rounded,
-    };
-  }
-
-  String _appBarTitle() {
-    return switch (_navIndex) {
-      0 => 'AgroScan',
-      1 => 'Skan',
-      _ => 'History',
     };
   }
 
@@ -114,7 +86,7 @@ class _HomeShellState extends State<_HomeShell> {
           final cubit = context.read<HomeCubit>();
           return Scaffold(
             appBar: AppBar(
-              title: Text(_appBarTitle()),
+              title: const Text('AgroScan'),
               actions: [
                 IconButton(
                   tooltip: 'Tema',
@@ -123,34 +95,15 @@ class _HomeShellState extends State<_HomeShell> {
                 ),
               ],
             ),
-            body: IndexedStack(
-              index: _navIndex,
-              children: [
-                _HomeTabBody(cs: cs, cubit: cubit),
-                _ScanTabBody(cs: cs, cubit: cubit),
-                const HistoryPage(embedded: true),
-              ],
-            ),
-            bottomNavigationBar: NavigationBar(
-              selectedIndex: _navIndex,
-              onDestinationSelected: (i) => setState(() => _navIndex = i),
-              destinations: const [
-                NavigationDestination(
-                  icon: Icon(Icons.home_outlined),
-                  selectedIcon: Icon(Icons.home_rounded),
-                  label: 'Bosh sahifa',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.document_scanner_outlined),
-                  selectedIcon: Icon(Icons.document_scanner_rounded),
-                  label: 'Skan',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.history_outlined),
-                  selectedIcon: Icon(Icons.history_rounded),
-                  label: 'History',
-                ),
-              ],
+            body: _HomeTabBody(
+              cs: cs,
+              cubit: cubit,
+              onOpenHistory: () {
+                Navigator.push<void>(
+                  context,
+                  MaterialPageRoute<void>(builder: (_) => const HistoryPage()),
+                );
+              },
             ),
           );
         },
@@ -160,10 +113,15 @@ class _HomeShellState extends State<_HomeShell> {
 }
 
 class _HomeTabBody extends StatelessWidget {
-  const _HomeTabBody({required this.cs, required this.cubit});
+  const _HomeTabBody({
+    required this.cs,
+    required this.cubit,
+    required this.onOpenHistory,
+  });
 
   final ColorScheme cs;
   final HomeCubit cubit;
+  final VoidCallback onOpenHistory;
 
   @override
   Widget build(BuildContext context) {
@@ -223,6 +181,13 @@ class _HomeTabBody extends StatelessWidget {
                           iconPath: 'assets/icons/download.svg',
                           onTap: cubit.openGallery,
                         ),
+                        const SizedBox(height: 12),
+                        _ActionTile(
+                          title: 'History',
+                          subtitle: 'Oldingi tahlillar tarixini ko‘rish',
+                          iconData: Icons.history_rounded,
+                          onTap: onOpenHistory,
+                        ),
                       ],
                     ),
                   ),
@@ -245,84 +210,19 @@ class _HomeTabBody extends StatelessWidget {
   }
 }
 
-class _ScanTabBody extends StatelessWidget {
-  const _ScanTabBody({required this.cs, required this.cubit});
-
-  final ColorScheme cs;
-  final HomeCubit cubit;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            cs.surface,
-            Color.lerp(cs.surface, cs.primary, 0.1)!,
-          ],
-        ),
-      ),
-      child: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 360),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.document_scanner_rounded, size: 56, color: cs.primary),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Yangi tahlil',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontFamily: 'AlfaSlabOne',
-                        ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Kamera yoki galereya orqali rasm yuboring',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: cs.onSurfaceVariant,
-                          fontFamily: 'Alice',
-                        ),
-                  ),
-                  const SizedBox(height: 28),
-                  FilledButton.icon(
-                    onPressed: cubit.openCamera,
-                    icon: const Icon(Icons.photo_camera_rounded),
-                    label: const Text('Kamera'),
-                  ),
-                  const SizedBox(height: 12),
-                  FilledButton.tonalIcon(
-                    onPressed: cubit.openGallery,
-                    icon: const Icon(Icons.photo_library_rounded),
-                    label: const Text('Galereya'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _ActionTile extends StatelessWidget {
   const _ActionTile({
     required this.title,
     required this.subtitle,
-    required this.iconPath,
+    this.iconPath,
+    this.iconData,
     required this.onTap,
-  });
+  }) : assert(iconPath != null || iconData != null);
 
   final String title;
   final String subtitle;
-  final String iconPath;
+  final String? iconPath;
+  final IconData? iconData;
   final VoidCallback onTap;
 
   @override
@@ -348,7 +248,9 @@ class _ActionTile extends StatelessWidget {
                   color: cs.primaryContainer.withValues(alpha: 0.65),
                   borderRadius: BorderRadius.circular(18),
                 ),
-                child: SvgPicture.asset(iconPath, width: 28, height: 28),
+                child: iconPath != null
+                    ? SvgPicture.asset(iconPath!, width: 28, height: 28)
+                    : Icon(iconData, size: 28, color: cs.primary),
               ),
               const SizedBox(width: 16),
               Expanded(
